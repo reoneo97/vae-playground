@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# My Ignores
+lightning_logs/
+vae_images/
+data/
+.vscode/
