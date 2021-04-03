@@ -21,4 +21,4 @@ if __name__ == "__main__":
     trainer.fit(vae)
 
     path = "./lightning_logs"
-    os.system('tensorboard --logdir=' + path)
+    #os.system('tensorboard --logdir=' + path)

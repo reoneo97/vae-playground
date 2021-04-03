@@ -34,7 +34,8 @@ class VAE(pl.LightningModule):
         return mu,log_var
 
     def reparametrize(self,mu,log_var):
-        #Reparametrization Trick to allow gradients to flow back from the stochastic part of the model
+        #Reparametrization Trick to allow gradients to backpropagate from the 
+        #stochastic part of the model
         sigma = torch.exp(0.5*log_var)
         z = torch.randn(size = (mu.size(0),mu.size(1)))
         z= z.type_as(mu)
@@ -46,14 +47,7 @@ class VAE(pl.LightningModule):
     
     def training_step(self,batch,batch_idx):
         x,_ = batch
-        batch_size = x.size(0)
-        x = x.view(batch_size,-1)
-        mu,log_var = self.encode(x)
-
-        kl_loss =  (-0.5*(1+log_var - mu**2- torch.exp(log_var)).sum(dim = 1)).mean(dim =0)       
-
-        hidden = self.reparametrize(mu,log_var)
-        x_out = self.decode(hidden)
+        x = self.forward(x)
 
         recon_loss_criterion = nn.MSELoss()
         recon_loss = recon_loss_criterion(x,x_out)
