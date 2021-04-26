@@ -47,20 +47,26 @@ class VAE(pl.LightningModule):
     
     def training_step(self,batch,batch_idx):
         x,_ = batch
-        x = self.forward(x)
+        batch_size = x.size(0)
+        x = x.view(batch_size,-1)
+        mu,log_var = self.encode(x)
 
+        kl_loss =  (-0.5*(1+log_var - mu**2- torch.exp(log_var)).sum(dim = 1)).mean(dim =0)        
+        hidden = self.reparametrize(mu,log_var)
+        x_out = self.decode(hidden)
+    
         recon_loss_criterion = nn.MSELoss()
         recon_loss = recon_loss_criterion(x,x_out)
         #print(kl_loss.item(),recon_loss.item())
         loss = recon_loss*self.alpha + kl_loss
 
 
-        self.log('total_loss',loss,on_step = True,on_epoch = True,prog_bar = True)
+        self.log('train_loss',loss,on_step = False,on_epoch = True,prog_bar = True)
         return loss
 
     def validation_step(self,batch,batch_idx):
         x,_ = batch
-        batch_size = x.size(0)
+        batch_size = x.size(0)  
         x = x.view(batch_size,-1)
         mu,log_var = self.encode(x)
 
@@ -72,9 +78,9 @@ class VAE(pl.LightningModule):
         recon_loss = recon_loss_criterion(x,x_out)
         #print(kl_loss.item(),recon_loss.item())
         loss = recon_loss*self.alpha + kl_loss
-        self.log('val_kl_loss',kl_loss,on_step = True,on_epoch = True)
-        self.log('val_recon_loss',recon_loss,on_step = True,on_epoch = True)
-        self.log('val_loss',loss,on_step = True,on_epoch = True,prog_bar = True)
+        self.log('val_kl_loss',kl_loss,on_step = False,on_epoch = True)
+        self.log('val_recon_loss',recon_loss,on_step = False,on_epoch = True)
+        self.log('val_loss',loss,on_step = False,on_epoch = True)
         return x_out,loss
 
     def validation_epoch_end(self,outputs):
@@ -106,10 +112,10 @@ class VAE(pl.LightningModule):
 
         mnist_val  = MNIST('data/',download = True,train = False,transform=self.data_transform)
         return DataLoader(mnist_val,batch_size=64)
+
     def scale_image(self,img):
         out = (img + 1) / 2
         return out
 
-
-class conv_VAE(pl.LightningModule):
-    pass
+    def interpolate(self):
+        pass

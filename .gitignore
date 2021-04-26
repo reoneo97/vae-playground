@@ -3,3 +3,5 @@ data/
 .vscode/
 __pycache__/
 .ipynb_checkpoints/
+lightning_logs/
+vae_images/
