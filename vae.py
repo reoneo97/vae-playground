@@ -25,8 +25,8 @@ class VAE(pl.LightningModule):
                                      nn.Linear(49,196),nn.ReLU(),
                                      nn.Linear(196,784),nn.Tanh())
         self.data_transform = transforms.Compose([
-                                                    transforms.ToTensor(),
-                                                    transforms.Normalize(mean=(0.5,),std=(0.5,))])
+                                transforms.ToTensor(),
+                                transforms.Normalize(mean=(0.5,),std=(0.5,))])
     def encode(self,x):
         hidden = self.encoder(x)
         mu = self.hidden2mu(hidden)
