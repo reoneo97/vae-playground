@@ -6,8 +6,8 @@ import os
 from vae import *
 import IPython
 
-
-
+def download_dataset():
+    
 if __name__ == "__main__":
     
     vae =  VAE(alpha = 50)

@@ -11,7 +11,7 @@ from torch.optim import Adam
 
 
 class VAE(pl.LightningModule):
-    def __init__(self,alpha = 1):
+    def __init__(self,alpha = 1, dataset = "mnist"):
         #Autoencoder only requires 1 dimensional argument since input and output-size is the same
         
         super().__init__()
@@ -27,6 +27,7 @@ class VAE(pl.LightningModule):
         self.data_transform = transforms.Compose([
                                 transforms.ToTensor(),
                                 transforms.Normalize(mean=(0.5,),std=(0.5,))])
+        self.dataset = dataset
     def encode(self,x):
         hidden = self.encoder(x)
         mu = self.hidden2mu(hidden)
@@ -104,13 +105,17 @@ class VAE(pl.LightningModule):
 
     # Functions for dataloading
     def train_dataloader(self):
-
-        mnist_train  = MNIST('data/',download = True,train = True,transform=self.data_transform)
-        return DataLoader(mnist_train,batch_size=64)
+        if self.dataset == "mnist":
+            train_set = MNIST('data/',download = True,train = True,transform=self.data_transform)
+        elif self.dataset == "fashion-mnist":
+            train_set = FashionMNIST('data/',download = True,train = True,transform=self.data_transform) 
+        return DataLoader(train_set,batch_size=64)
 
     def val_dataloader(self):
-
-        mnist_val  = MNIST('data/',download = True,train = False,transform=self.data_transform)
+        if self.dataset == "mnist":
+            val_set  = MNIST('data/',download = True,train = False,transform=self.data_transform)
+        elif self.dataset == "fashion-mnist":
+            val_set  = FashionMNIST('data/',download = True,train = False,transform=self.data_transform)    
         return DataLoader(mnist_val,batch_size=64)
 
     def scale_image(self,img):
