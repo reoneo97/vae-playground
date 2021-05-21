@@ -116,7 +116,7 @@ class VAE(pl.LightningModule):
             val_set  = MNIST('data/',download = True,train = False,transform=self.data_transform)
         elif self.dataset == "fashion-mnist":
             val_set  = FashionMNIST('data/',download = True,train = False,transform=self.data_transform)    
-        return DataLoader(mnist_val,batch_size=64)
+        return DataLoader(val_set,batch_size=64)
 
     def scale_image(self,img):
         out = (img + 1) / 2
