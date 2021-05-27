@@ -1,0 +1,9 @@
+training_params:
+  max_epochs: 10
+  auto_lr_find: true
+  gpus: 1
+model_params:
+  hidden_size: 28
+  alpha: 50
+  dataset: "mnist"
+  save_images: false
