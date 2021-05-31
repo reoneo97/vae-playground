@@ -5,7 +5,7 @@ import argparse
 import yaml
 
 
-def load_config(path="config.yml"):
+def load_config(path="config.yaml"):
     config = yaml.load(open(path), yaml.SafeLoader)
     return config["training_params"], config["model_params"]
 

@@ -56,6 +56,10 @@ class VAE(pl.LightningModule):
         mu = self.hidden2mu(hidden)
         log_var = self.hidden2log_var(hidden)
         return mu, log_var
+    
+    def decode(self, x):
+        x = self.decoder(x)
+        return x
 
     def reparametrize(self, mu, log_var):
         # Reparametrization Trick to allow gradients to backpropagate from the
@@ -65,21 +69,14 @@ class VAE(pl.LightningModule):
         z = z.type_as(mu)
         return mu + sigma*z
 
-    def decode(self, x):
-        x = self.decoder(x)
-        return x
-
     def training_step(self, batch, batch_idx):
         x, _ = batch
         batch_size = x.size(0)
         x = x.view(batch_size, -1)
-        mu, log_var = self.encode(x)
+        mu, log_var, x_out = self.forward(x)
 
         kl_loss = (-0.5*(1+log_var - mu**2 -
                          torch.exp(log_var)).sum(dim=1)).mean(dim=0)
-        hidden = self.reparametrize(mu, log_var)
-        x_out = self.decode(hidden)
-
         recon_loss_criterion = nn.MSELoss()
         recon_loss = recon_loss_criterion(x, x_out)
         # print(kl_loss.item(),recon_loss.item())
@@ -93,13 +90,10 @@ class VAE(pl.LightningModule):
         x, _ = batch
         batch_size = x.size(0)
         x = x.view(batch_size, -1)
-        mu, log_var = self.encode(x)
+        mu, log_var, x_out = self.forward(x)
 
         kl_loss = (-0.5*(1+log_var - mu**2 -
                          torch.exp(log_var)).sum(dim=1)).mean(dim=0)
-        hidden = self.reparametrize(mu, log_var)
-        x_out = self.decode(hidden)
-
         recon_loss_criterion = nn.MSELoss()
         recon_loss = recon_loss_criterion(x, x_out)
         # print(kl_loss.item(),recon_loss.item())
@@ -110,7 +104,7 @@ class VAE(pl.LightningModule):
         return x_out, loss
 
     def validation_epoch_end(self, outputs):
-        if not self.save_images: 
+        if not self.save_images:
             return
         if not os.path.exists('vae_images'):
             os.makedirs('vae_images')
@@ -125,11 +119,10 @@ class VAE(pl.LightningModule):
         return Adam(self.parameters(), lr=1e-3)
 
     def forward(self, x):
-        batch_size = x.size(0)
-        x = x.view(batch_size, -1)
         mu, log_var = self.encode(x)
         hidden = self.reparametrize(mu, log_var)
-        return self.decoder(hidden)
+        output = self.decoder(hidden)
+        return mu, log_var, output
 
     # Functions for dataloading
     def train_dataloader(self):
