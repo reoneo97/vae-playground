@@ -1,6 +1,6 @@
 
 from pytorch_lightning import Trainer
-from models import VAE
+from models import VAE, Conv_VAE
 import yaml
 
 
@@ -13,10 +13,10 @@ def load_config(model_type, path="config.yaml"):
 
 
 if __name__ == "__main__":
-    model_type = "vae"
+    model_type = "conv-vae"
     training_params, model_params = load_config(model_type)
 
-    model = VAE(**model_params)
+    model = Conv_VAE(**model_params)
     print("==== Model Architecture ====")
     print(model)
     trainer = Trainer(**training_params)

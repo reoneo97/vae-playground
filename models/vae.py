@@ -10,9 +10,25 @@ import os
 from torch.optim import Adam
 
 
+class Flatten(nn.Module):
+    def forward(self, x):
+        return x.view(x.size(0), -1)
+
+
+class Stack(nn.Module):
+    def __init__(self, channels, height, width):
+        super(Stack, self).__init__()
+        self.channels = channels
+        self.height = height
+        self.width = width
+
+    def forward(self, x):
+        return x.view(x.size(0), self.channels, self.height, self.width)
+
+
 class VAE(pl.LightningModule):
-    def __init__(self, hidden_size: int, alpha: int = 1,
-                 dataset: str = "mnist", save_images: bool = True):
+    def __init__(self, hidden_size: int, alpha: int, dataset: str,
+                 save_images: bool, save_path: str):
         """Init Function
 
         Args:
@@ -30,8 +46,10 @@ class VAE(pl.LightningModule):
 
         super().__init__()
         self.hidden_size = hidden_size
+        self.save_path = save_path
         self.save_images = save_images
         self.encoder = nn.Sequential(
+            Flatten(),
             nn.Linear(784, 196), nn.ReLU(),
             nn.BatchNorm1d(196, momentum=0.7),
             nn.Linear(196, 49), nn.ReLU(),
@@ -44,11 +62,12 @@ class VAE(pl.LightningModule):
         self.decoder = nn.Sequential(
             nn.Linear(hidden_size, 49), nn.ReLU(),
             nn.Linear(49, 196), nn.ReLU(),
-            nn.Linear(196, 784), nn.Tanh()
+            nn.Linear(196, 784), Stack(1, 28, 28),
+            nn.Tanh()
         )
         self.data_transform = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize(mean=(0.5,), std=(0.5,))])
+            transforms.Normalize(mean=(0.5), std=(0.5,))])
         self.dataset = dataset
 
     def encode(self, x):
@@ -56,7 +75,7 @@ class VAE(pl.LightningModule):
         mu = self.hidden2mu(hidden)
         log_var = self.hidden2log_var(hidden)
         return mu, log_var
-    
+
     def decode(self, x):
         x = self.decoder(x)
         return x
@@ -71,8 +90,6 @@ class VAE(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         x, _ = batch
-        batch_size = x.size(0)
-        x = x.view(batch_size, -1)
         mu, log_var, x_out = self.forward(x)
 
         kl_loss = (-0.5*(1+log_var - mu**2 -
@@ -88,8 +105,6 @@ class VAE(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         x, _ = batch
-        batch_size = x.size(0)
-        x = x.view(batch_size, -1)
         mu, log_var, x_out = self.forward(x)
 
         kl_loss = (-0.5*(1+log_var - mu**2 -
@@ -106,14 +121,15 @@ class VAE(pl.LightningModule):
     def validation_epoch_end(self, outputs):
         if not self.save_images:
             return
-        if not os.path.exists('vae_images'):
-            os.makedirs('vae_images')
+        if not os.path.exists(self.save_path):
+            os.makedirs(self.save_path)
         choice = random.choice(outputs)
         output_sample = choice[0]
         output_sample = output_sample.reshape(-1, 1, 28, 28)
+        print("Mean:",output_sample.mean())
         output_sample = self.scale_image(output_sample)
         save_image(output_sample,
-                   f"vae_images/epoch_{self.current_epoch+1}.png")
+                   f"{self.save_path}/epoch_{self.current_epoch+1}.png")
 
     def configure_optimizers(self):
         return Adam(self.parameters(), lr=1e-3)
