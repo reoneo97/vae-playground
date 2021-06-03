@@ -6,3 +6,4 @@ __pycache__/
 lightning_logs/
 images/vae_images/
 images/conv_vae_images/
+transformer.py
