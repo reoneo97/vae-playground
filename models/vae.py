@@ -167,6 +167,3 @@ class VAE(pl.LightningModule):
     def scale_image(self, img):
         out = (img + 1) / 2
         return out
-
-    def interpolate(self):
-        pass
