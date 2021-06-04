@@ -37,7 +37,8 @@ def load_config(path="config.yaml"):
         model_config = VAEConfig(**config["model_params"])
     elif model_type == "conv-vae":
         model_config = ConvVAEConfig(**config["model_params"])
-
+    else:
+        raise NotImplementedError(f"Model {model_type} is not implemented")
     train_config = TrainConfig(**config["training_params"])
     config = Config(model_config=model_config, train_config=train_config,
                     model_type=model_type)

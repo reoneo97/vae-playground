@@ -18,6 +18,8 @@ class Conv_VAE(VAE):
         self.channels = channels
         self.height = height
         self.width = width
+        final_height = (self.height//4-3)//2+1
+        final_width = (self.width//4-3)//2+1
         self.encoder = nn.Sequential(
             nn.Conv2d(self.channels, 8, 3, padding=1), nn.ReLU(),
             nn.BatchNorm2d(8),
@@ -26,21 +28,26 @@ class Conv_VAE(VAE):
             nn.MaxPool2d(2),
             nn.Conv2d(16, 32, 3, padding=1), nn.ReLU(),
             nn.BatchNorm2d(32),
+            nn.MaxPool2d(2),  # 32x7x7
             nn.Conv2d(32, 64, 3, padding=1), nn.ReLU(),
             nn.BatchNorm2d(64),
-            nn.MaxPool2d(2),  # (7x7x64)
+            nn.MaxPool2d(3, stride=2),  # 64*3*3
             Flatten(),
-            nn.Linear(height*width*4, height*width),
+            nn.Linear(64*final_height*final_width,
+                      16*final_height*final_width),
             nn.ReLU(),
-            nn.Linear(height*width, self.hidden_size),
+            nn.Linear(16*final_height*final_width, self.hidden_size),
             nn.ReLU()
         )
 
         self.decoder = nn.Sequential(
-            nn.Linear(self.hidden_size, height*width), nn.ReLU(),
-            nn.Linear(height*width, height*width*4),
+            nn.Linear(self.hidden_size, 16*final_height *
+                      final_width), nn.ReLU(),
+            nn.Linear(16*final_height*final_width,
+                      64 * final_height*final_width),
             nn.ReLU(),
-            Stack(64, self.height//4, self.width//4),
-            nn.ConvTranspose2d(64, 16, 2, 2), nn.ReLU(),
+            Stack(64, 3, 3),
+            nn.ConvTranspose2d(64, 32, 3, 2), nn.ReLU(), nn.BatchNorm2d(32),
+            nn.ConvTranspose2d(32, 16, 2, 2), nn.ReLU(), nn.BatchNorm2d(16),
             nn.ConvTranspose2d(16, channels, 2, 2), nn.Tanh()
         )
