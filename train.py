@@ -1,23 +1,26 @@
-
 from pytorch_lightning import Trainer
-from models import VAE
-import yaml
+from models import VAE, Conv_VAE
+from config import config
 
 
-def load_config(model_type, path="config.yaml"):
-    config = yaml.load(open(path), yaml.SafeLoader)
+def make_model(config):
+    model_type = config.model_type
+    model_config = config.model_config
+
     if model_type == "vae":
-        return config["training_params"], config["vae_model_params"]
+        return VAE(**model_config.dict())
     elif model_type == "conv-vae":
-        return config["training_params"], config["conv_vae_model_params"]
+        return Conv_VAE(**model_config.dict())
+    else:
+        raise NotImplementedError("Model Architecture not implemented")
 
 
 if __name__ == "__main__":
-    model_type = "vae"
-    training_params, model_params = load_config(model_type)
 
-    model = VAE(**model_params)
-    print("==== Model Architecture ====")
-    print(model)
-    trainer = Trainer(**training_params)
+    model = make_model(config)
+    train_config = config.train_config
+    trainer = Trainer(**train_config.dict())
+    lr_finder = trainer.tuner.lr_find(model)
+    new_lr = lr_finder.suggestion()
+    model.lr = new_lr
     trainer.fit(model)

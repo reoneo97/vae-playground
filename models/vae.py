@@ -6,8 +6,10 @@ from torchvision.datasets import MNIST, FashionMNIST
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torchvision.utils import save_image
-import os
 from torch.optim import Adam
+
+import os
+from typing import Optional
 
 
 class Flatten(nn.Module):
@@ -27,27 +29,28 @@ class Stack(nn.Module):
 
 
 class VAE(pl.LightningModule):
-    def __init__(self, hidden_size: int, alpha: int, dataset: str,
-                 save_images: bool, save_path: str):
-        """Init Function
+    def __init__(self, hidden_size: int, alpha: int, lr: float,
+                 dataset: Optional[str] = None,
+                 save_images: Optional[bool] = None,
+                 save_path: Optional[str] = None):
+        """Init function for the VAE
 
         Args:
-            hidden_size (int): Size of the hidden dimension. This hidden
-            dimension is different fromt the mu and log_var vectors but
-            in this implementation, they all have the same dimension
 
-            alpha (int, optional): Hyperparameter to control the loss function
-            and determine the proportion between reconstruction loss and
-            KL-Divergence Loss. Higher values of alpha will make the latent
-            space less regular but generated data will more closely resemble
-            training data. Defaults to 1.
-            dataset (str, optional): Dataset to be used. Defaults to "mnist".
+        hidden_size (int): Latent Hidden Size
+        alpha (int): Hyperparameter to control the importance of
+        reconstruction loss vs KL-Divergence Loss
+        lr (float): Learning Rate, will not be used if auto_lr_find is used.
+        dataset (Optional[str]): Dataset to used
+        save_images (Optional[bool]): Boolean to decide whether to save images
+        save_path (Optional[str]): Path to save images
         """
 
         super().__init__()
         self.hidden_size = hidden_size
         self.save_path = save_path
         self.save_images = save_images
+        self.lr = lr
         self.encoder = nn.Sequential(
             Flatten(),
             nn.Linear(784, 196), nn.ReLU(),
@@ -126,13 +129,13 @@ class VAE(pl.LightningModule):
         choice = random.choice(outputs)
         output_sample = choice[0]
         output_sample = output_sample.reshape(-1, 1, 28, 28)
-        print("Mean:",output_sample.mean())
+        print("Mean:", output_sample.mean())
         output_sample = self.scale_image(output_sample)
         save_image(output_sample,
                    f"{self.save_path}/epoch_{self.current_epoch+1}.png")
 
     def configure_optimizers(self):
-        return Adam(self.parameters(), lr=1e-3)
+        return Adam(self.parameters(), lr=(self.lr or self.learning_rate))
 
     def forward(self, x):
         mu, log_var = self.encode(x)
