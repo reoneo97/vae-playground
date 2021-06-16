@@ -1,5 +1,7 @@
-torch=1.7.0
-pytorch_lightning=1.1.1
-torchvision=0.8.1
-streamlit=0.82.0
-argparse=1.1
+--find-links https://download.pytorch.org/whl/torch_stable.html
+
+torch==1.8.0+cpu
+pytorch_lightning>=1.1.1
+torchvision==0.9.0+cpu
+streamlit==0.82.0
+streamlit-drawable-canvas>=0.1.1

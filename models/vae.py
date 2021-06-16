@@ -152,7 +152,7 @@ class VAE(pl.LightningModule):
             train_set = FashionMNIST(
                 'data/', download=True, train=True,
                 transform=self.data_transform)
-        return DataLoader(train_set, batch_size=64)
+        return DataLoader(train_set, batch_size=64, shuffle=True)
 
     def val_dataloader(self):
         if self.dataset == "mnist":

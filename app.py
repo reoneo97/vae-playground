@@ -1,5 +1,5 @@
 import streamlit as st
-
+from streamlit_drawable_canvas import st_canvas
 st.title("VAE Playground")
 # st.sidebar()
 st.markdown("This is a simple streamlit app to showcase how different VAEs "

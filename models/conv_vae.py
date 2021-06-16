@@ -31,23 +31,29 @@ class Conv_VAE(VAE):
             nn.MaxPool2d(2),  # 32x7x7
             nn.Conv2d(32, 64, 3, padding=1), nn.ReLU(),
             nn.BatchNorm2d(64),
+            nn.Conv2d(64, 128, 3, padding=1), nn.ReLU(),
+            nn.BatchNorm2d(128),
             nn.MaxPool2d(3, stride=2),  # 64*3*3
             Flatten(),
-            nn.Linear(64*final_height*final_width,
-                      16*final_height*final_width),
+            nn.Linear(128*final_height*final_width,
+                      32*final_height*final_width),
             nn.ReLU(),
-            nn.Linear(16*final_height*final_width, self.hidden_size),
+            nn.Linear(32*final_height*final_width, self.hidden_size),
             nn.ReLU()
         )
 
         self.decoder = nn.Sequential(
-            nn.Linear(self.hidden_size, 16*final_height *
+            nn.Linear(self.hidden_size, 32*final_height *
                       final_width), nn.ReLU(),
-            nn.Linear(16*final_height*final_width,
-                      64 * final_height*final_width),
-            nn.ReLU(),
-            Stack(64, 3, 3),
-            nn.ConvTranspose2d(64, 32, 3, 2), nn.ReLU(), nn.BatchNorm2d(32),
+            nn.BatchNorm1d(32*final_height * final_width),
+            nn.Linear(32*final_height*final_width,
+                      128*final_height*final_width),
+            nn.ReLU(), nn.BatchNorm1d(128*final_height * final_width),
+            Stack(128, 3, 3),
+            nn.ConvTranspose2d(128, 64, 3, 2), nn.ReLU(), nn.BatchNorm2d(64),
+            nn.ConvTranspose2d(64, 32, 3, 1, padding=1),
+            nn.ReLU(), nn.BatchNorm2d(32),
             nn.ConvTranspose2d(32, 16, 2, 2), nn.ReLU(), nn.BatchNorm2d(16),
-            nn.ConvTranspose2d(16, channels, 2, 2), nn.Tanh()
+            nn.ConvTranspose2d(16, 8, 2, 2), nn.BatchNorm2d(8),
+            nn.Conv2d(8, self.channels, 3, padding=1), nn.Tanh()
         )

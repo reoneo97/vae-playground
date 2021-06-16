@@ -20,7 +20,8 @@ if __name__ == "__main__":
     model = make_model(config)
     train_config = config.train_config
     trainer = Trainer(**train_config.dict())
-    lr_finder = trainer.tuner.lr_find(model)
-    new_lr = lr_finder.suggestion()
-    model.lr = new_lr
+    # lr_finder = trainer.tuner.lr_find(model)
+    # new_lr = lr_finder.suggestion()
+    # print("Learning Rate Chosen:",new_lr)
+    # model.lr = new_lr
     trainer.fit(model)

@@ -37,6 +37,22 @@ def test_VAE():
 def test_Conv_VAE():
     hidden_size = 28
     batch_size = 5
+    channels = 1
+    height = width = 28
+    original_shape = (batch_size, channels, height, width)
+    inp = torch.rand(*original_shape)
+    model = Conv_VAE(channels, height, width, 0.01, hidden_size, 1)
+
+    mu, log_var, output = model(inp)
+
+    assert mu.shape == (batch_size, hidden_size)
+    assert log_var.shape == (batch_size, hidden_size)
+    assert output.shape == original_shape
+
+
+def test_Conv_VAE_3():
+    hidden_size = 28
+    batch_size = 5
     channels = 3
     height = width = 28
     original_shape = (batch_size, channels, height, width)
