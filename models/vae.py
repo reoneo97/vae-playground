@@ -167,3 +167,24 @@ class VAE(pl.LightningModule):
     def scale_image(self, img):
         out = (img + 1) / 2
         return out
+
+    def interpolate(self, x1, x2):
+        assert x1.shape == x2.shape
+        width, height = x1.size()[-2], x1.size()[-1]
+        if self.training:
+            raise Exception(
+                "This function should not be called when model is still "
+                "in training mode. Use model.eval() before calling the function")
+        mu1, lv1 = self.encode(x1)
+        mu2, lv2 = self.encode(x2)
+        z1 = self.reparametrize(mu1, lv1)
+        z2 = self.reparametrize(mu2, lv2)
+        weights = torch.arange(0.1, 0.9, 0.1)
+        intermediate = [self.decode(z1)]
+        for wt in weights:
+            inter = torch.lerp(z1, z2, wt)
+            intermediate.append(self.decode(inter))
+        intermediate.append(self.decode(z2))
+        out = torch.stack(intermediate, dim=2)
+        out = out.view(-1, width, height)
+        return out
