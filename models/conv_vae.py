@@ -5,12 +5,12 @@ from typing import Optional
 
 class Conv_VAE(VAE):
     def __init__(self, channels: int, height: int, width: int, lr: int,
-                 hidden_size: int, alpha: int,
+                 hidden_size: int, alpha: int, batch_size: int, 
                  dataset: Optional[str] = None,
                  save_images: Optional[bool] = None,
-                 save_path: Optional[str] = None):
-        super().__init__(hidden_size, alpha, lr,
-                         dataset, save_images, save_path)
+                 save_path: Optional[str] = None, **kwargs):
+        super().__init__(hidden_size, alpha, lr, batch_size,
+                         dataset, save_images, save_path,**kwargs)
         # Our code now will look identical to the VAE class except that the
         # encoder and the decoder have been adjusted
         assert not height % 4 and not width % 4, "Choose height and width to "\

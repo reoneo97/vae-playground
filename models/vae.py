@@ -49,7 +49,7 @@ class VAE(pl.LightningModule):
 
         super().__init__()
         self.hidden_size = hidden_size
-        self.save_path = save_path
+        self.save_path = f'{save_path}/{kwargs["model_type"]}_images/'
         self.save_images = save_images
         self.lr = lr
         self.batch_size = batch_size
@@ -172,7 +172,7 @@ class VAE(pl.LightningModule):
 
     def interpolate(self, x1, x2):
         
-        assert x1.shape == x2.shape,"Inputs must be of the same shape"
+        assert x1.shape == x2.shape, "Inputs must be of the same shape"
         if x1.dim() == 3: x1 = x1.unsqueeze(0)
         if x2.dim() == 3: x2 = x2.unsqueeze(0)
         width, height = x1.size()[-2], x1.size()[-1]

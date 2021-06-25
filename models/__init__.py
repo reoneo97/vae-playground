@@ -6,6 +6,6 @@ __all__ = [
     'Conv_VAE',
 ]
 vae_models = {
-    "conv-vae": Conv_VAE,
+    "conv_vae": Conv_VAE,
     "vae": VAE
 }

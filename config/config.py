@@ -10,6 +10,7 @@ class TrainConfig(BaseModel):
 
 
 class VAEConfig(BaseModel):
+    model_type: str
     hidden_size: int
     alpha: int
     dataset: str
@@ -33,10 +34,10 @@ class Config(BaseModel):
 
 def load_config(path="config.yaml"):
     config = yaml.load(open(path), yaml.SafeLoader)
-    model_type = config['model_type']
+    model_type = config['model_params']['model_type']
     if model_type == "vae":
         model_config = VAEConfig(**config["model_params"])
-    elif model_type == "conv-vae":
+    elif model_type == "conv_vae":
         model_config = ConvVAEConfig(**config["model_params"])
     else:
         raise NotImplementedError(f"Model {model_type} is not implemented")
