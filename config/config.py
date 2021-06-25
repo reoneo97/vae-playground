@@ -13,6 +13,7 @@ class VAEConfig(BaseModel):
     hidden_size: int
     alpha: int
     dataset: str
+    batch_size: Optional[int] = 64
     save_images: Optional[bool] = False
     lr: Optional[float] = None
     save_path: Optional[str] = None

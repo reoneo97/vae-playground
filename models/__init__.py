@@ -5,3 +5,7 @@ __all__ = [
     'VAE', 'Flatten', 'Stack'
     'Conv_VAE',
 ]
+vae_models = {
+    "conv-vae": Conv_VAE,
+    "vae": VAE
+}

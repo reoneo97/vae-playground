@@ -72,13 +72,13 @@ def test_interpolate():
     model = VAE(28, 1, 0.01)
     model.eval()  # So that batch norm does not work
     test = model.interpolate(x1, x2)
-    assert test.shape == (10, 28, 28)
+    assert test.shape == (10, 1, 28, 28)
 
 
 def test_conv_interpolate():
-    x1 = torch.rand(1,1, 28, 28)
-    x2 = torch.rand(1,1, 28, 28)
+    x1 = torch.rand(1, 28, 28)
+    x2 = torch.rand(1, 28, 28)
     model = Conv_VAE(1, 28, 28, 0.01, 28, 1)
     model.eval()  # So that batch norm does not work
     test = model.interpolate(x1, x2)
-    assert test.shape == (10, 28, 28)
+    assert test.shape == (10, 1, 28, 28)

@@ -29,10 +29,11 @@ class Stack(nn.Module):
 
 
 class VAE(pl.LightningModule):
-    def __init__(self, hidden_size: int, alpha: int, lr: float,
+    def __init__(self, hidden_size: int, alpha: int, lr: float, 
+                 batch_size: int,
                  dataset: Optional[str] = None,
                  save_images: Optional[bool] = None,
-                 save_path: Optional[str] = None):
+                 save_path: Optional[str] = None, **kwargs):
         """Init function for the VAE
 
         Args:
@@ -51,6 +52,7 @@ class VAE(pl.LightningModule):
         self.save_path = save_path
         self.save_images = save_images
         self.lr = lr
+        self.batch_size = batch_size
         self.encoder = nn.Sequential(
             Flatten(),
             nn.Linear(784, 196), nn.ReLU(),
@@ -63,8 +65,8 @@ class VAE(pl.LightningModule):
         self.hidden2log_var = nn.Linear(hidden_size, hidden_size)
         self.alpha = alpha
         self.decoder = nn.Sequential(
-            nn.Linear(hidden_size, 49), nn.ReLU(),
-            nn.Linear(49, 196), nn.ReLU(),
+            nn.Linear(hidden_size, 49), nn.LeakyReLU(), nn.BatchNorm1d(49),
+            nn.Linear(49, 196), nn.LeakyReLU(),
             nn.Linear(196, 784), Stack(1, 28, 28),
             nn.Tanh()
         )
@@ -87,7 +89,7 @@ class VAE(pl.LightningModule):
         # Reparametrization Trick to allow gradients to backpropagate from the
         # stochastic part of the model
         sigma = torch.exp(0.5*log_var)
-        z = torch.randn(size=(mu.size(0), mu.size(1)))
+        z = torch.randn_like(sigma)
         z = z.type_as(mu)
         return mu + sigma*z
 
@@ -152,7 +154,7 @@ class VAE(pl.LightningModule):
             train_set = FashionMNIST(
                 'data/', download=True, train=True,
                 transform=self.data_transform)
-        return DataLoader(train_set, batch_size=64, shuffle=True)
+        return DataLoader(train_set, batch_size=self.batch_size, shuffle=True)
 
     def val_dataloader(self):
         if self.dataset == "mnist":
@@ -169,7 +171,10 @@ class VAE(pl.LightningModule):
         return out
 
     def interpolate(self, x1, x2):
-        assert x1.shape == x2.shape
+        
+        assert x1.shape == x2.shape,"Inputs must be of the same shape"
+        if x1.dim() == 3: x1 = x1.unsqueeze(0)
+        if x2.dim() == 3: x2 = x2.unsqueeze(0)
         width, height = x1.size()[-2], x1.size()[-1]
         if self.training:
             raise Exception(
@@ -186,5 +191,5 @@ class VAE(pl.LightningModule):
             intermediate.append(self.decode(inter))
         intermediate.append(self.decode(z2))
         out = torch.stack(intermediate, dim=2)
-        out = out.view(-1, width, height)
+        out = out.view(-1, 1, width, height)
         return out

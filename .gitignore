@@ -4,5 +4,4 @@ data/
 __pycache__/
 .ipynb_checkpoints/
 lightning_logs/
-images/vae_images/
-images/conv_vae_images/
+images/
