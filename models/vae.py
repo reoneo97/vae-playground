@@ -7,6 +7,7 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torchvision.utils import save_image
 from torch.optim import Adam
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 import os
 from typing import Optional
@@ -30,9 +31,10 @@ class Stack(nn.Module):
 
 class VAE(pl.LightningModule):
     def __init__(self, hidden_size: int, alpha: int, lr: float,
+                 batch_size: int,
                  dataset: Optional[str] = None,
                  save_images: Optional[bool] = None,
-                 save_path: Optional[str] = None):
+                 save_path: Optional[str] = None, **kwargs):
         """Init function for the VAE
 
         Args:
@@ -48,29 +50,32 @@ class VAE(pl.LightningModule):
 
         super().__init__()
         self.hidden_size = hidden_size
-        self.save_path = save_path
+        self.save_path = f'{save_path}/{kwargs["model_type"]}_images/'
+        self.save_hyperparameters()
         self.save_images = save_images
         self.lr = lr
+        self.batch_size = batch_size
         self.encoder = nn.Sequential(
             Flatten(),
-            nn.Linear(784, 196), nn.ReLU(),
-            nn.BatchNorm1d(196, momentum=0.7),
-            nn.Linear(196, 49), nn.ReLU(),
-            nn.BatchNorm1d(49, momentum=0.7),
-            nn.Linear(49, hidden_size), nn.LeakyReLU()
+            nn.Linear(784, 392), nn.BatchNorm1d(392), nn.LeakyReLU(0.1),
+            nn.Linear(392, 196), nn.BatchNorm1d(196), nn.LeakyReLU(0.1),
+            nn.Linear(196, 128), nn.BatchNorm1d(128), nn.LeakyReLU(0.1),
+            nn.Linear(128, hidden_size)
         )
         self.hidden2mu = nn.Linear(hidden_size, hidden_size)
         self.hidden2log_var = nn.Linear(hidden_size, hidden_size)
         self.alpha = alpha
         self.decoder = nn.Sequential(
-            nn.Linear(hidden_size, 49), nn.ReLU(),
-            nn.Linear(49, 196), nn.ReLU(),
-            nn.Linear(196, 784), Stack(1, 28, 28),
+            nn.Linear(hidden_size, 128), nn.BatchNorm1d(128), nn.LeakyReLU(0.1),
+            nn.Linear(128, 196), nn.BatchNorm1d(196), nn.LeakyReLU(0.1),
+            nn.Linear(196, 392), nn.BatchNorm1d(392), nn.LeakyReLU(0.1),
+            nn.Linear(392, 784),
+            Stack(1, 28, 28),
             nn.Tanh()
         )
         self.data_transform = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize(mean=(0.5), std=(0.5,))])
+            transforms.Lambda(lambda x:2*x-1.)])
         self.dataset = dataset
 
     def encode(self, x):
@@ -87,14 +92,12 @@ class VAE(pl.LightningModule):
         # Reparametrization Trick to allow gradients to backpropagate from the
         # stochastic part of the model
         sigma = torch.exp(0.5*log_var)
-        z = torch.randn(size=(mu.size(0), mu.size(1)))
-        z = z.type_as(mu)
+        z = torch.randn_like(sigma)
         return mu + sigma*z
 
     def training_step(self, batch, batch_idx):
         x, _ = batch
         mu, log_var, x_out = self.forward(x)
-
         kl_loss = (-0.5*(1+log_var - mu**2 -
                          torch.exp(log_var)).sum(dim=1)).mean(dim=0)
         recon_loss_criterion = nn.MSELoss()
@@ -119,6 +122,7 @@ class VAE(pl.LightningModule):
         self.log('val_kl_loss', kl_loss, on_step=False, on_epoch=True)
         self.log('val_recon_loss', recon_loss, on_step=False, on_epoch=True)
         self.log('val_loss', loss, on_step=False, on_epoch=True)
+        # print(x.mean(),x_out.mean())
         return x_out, loss
 
     def validation_epoch_end(self, outputs):
@@ -129,13 +133,20 @@ class VAE(pl.LightningModule):
         choice = random.choice(outputs)
         output_sample = choice[0]
         output_sample = output_sample.reshape(-1, 1, 28, 28)
-        print("Mean:", output_sample.mean())
-        output_sample = self.scale_image(output_sample)
-        save_image(output_sample,
-                   f"{self.save_path}/epoch_{self.current_epoch+1}.png")
+        # output_sample = self.scale_image(output_sample)
+        save_image(
+            output_sample,
+            f"{self.save_path}/epoch_{self.current_epoch+1}.png",
+            # value_range=(-1, 1)
+        )
 
     def configure_optimizers(self):
-        return Adam(self.parameters(), lr=(self.lr or self.learning_rate))
+        optimizer = Adam(self.parameters(), lr=(self.lr or self.learning_rate))
+        lr_scheduler = ReduceLROnPlateau(optimizer,)
+        return {
+            "optimizer": optimizer, "lr_scheduler": lr_scheduler,
+            "monitor": "val_loss"
+        }
 
     def forward(self, x):
         mu, log_var = self.encode(x)
@@ -152,7 +163,7 @@ class VAE(pl.LightningModule):
             train_set = FashionMNIST(
                 'data/', download=True, train=True,
                 transform=self.data_transform)
-        return DataLoader(train_set, batch_size=64)
+        return DataLoader(train_set, batch_size=self.batch_size, shuffle=True)
 
     def val_dataloader(self):
         if self.dataset == "mnist":
@@ -167,3 +178,28 @@ class VAE(pl.LightningModule):
     def scale_image(self, img):
         out = (img + 1) / 2
         return out
+
+    def interpolate(self, x1, x2):
+
+        assert x1.shape == x2.shape, "Inputs must be of the same shape"
+        if x1.dim() == 3:
+            x1 = x1.unsqueeze(0)
+        if x2.dim() == 3:
+            x2 = x2.unsqueeze(0)
+        if self.training:
+            raise Exception(
+                "This function should not be called when model is still "
+                "in training mode. Use model.eval() before calling the "
+                "function")
+        mu1, lv1 = self.encode(x1)
+        mu2, lv2 = self.encode(x2)
+        z1 = self.reparametrize(mu1, lv1)
+        z2 = self.reparametrize(mu2, lv2)
+        weights = torch.arange(0.1, 0.9, 0.1)
+        intermediate = [self.decode(z1)]
+        for wt in weights:
+            inter = (1.-wt)*z1 + wt*z2
+            intermediate.append(self.decode(inter))
+        intermediate.append(self.decode(z2))
+        out = torch.stack(intermediate, dim=0)
+        return out, (mu1, lv1), (mu2, lv2)
