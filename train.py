@@ -1,6 +1,8 @@
 from pytorch_lightning import Trainer
 from models import vae_models
 from config import config
+from pytorch_lightning.callbacks import LearningRateMonitor
+from pytorch_lightning.loggers import TensorBoardLogger
 
 
 def make_model(config):
@@ -14,10 +16,11 @@ def make_model(config):
 
 
 if __name__ == "__main__":
-    print(config)
     model = make_model(config)
     train_config = config.train_config
-    trainer = Trainer(**train_config.dict())
+    logger = TensorBoardLogger(**config.log_config.dict())
+    trainer = Trainer(**train_config.dict(), logger=logger,
+                      callbacks=LearningRateMonitor())
     if train_config.auto_lr_find:
         lr_finder = trainer.tuner.lr_find(model)
         new_lr = lr_finder.suggestion()
@@ -27,4 +30,4 @@ if __name__ == "__main__":
     else:
         trainer.fit(model)
     trainer.save_checkpoint(
-        f"saved_models/{config.model_type}_alpha_{config.model_config.alpha}.ckpt")
+        f"saved_models/{config.model_type}_alpha_{config.model_config.alpha}_dim_{config.model_config.hidden_size}.ckpt")

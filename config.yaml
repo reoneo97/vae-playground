@@ -1,16 +1,19 @@
 training_params:
-  max_epochs: 10
+  max_epochs: 30
   auto_lr_find: false
   gpus: 1
 model_params:
-  model_type: conv_vae # vae or conv-vae 
-  lr: 0.0005
-  batch_size: 128
-  hidden_size: 28
-  alpha: 128
+  model_type: vae # vae or conv-vae 
+  lr: 0.005
+  batch_size: 144
+  hidden_size: 128
+  alpha: 512
   dataset: "mnist"
   save_images: true
   save_path: "images/"
   channels: 1
   height: 28
   width: 28
+logger_params:
+  name: "conv-vae"
+  save_dir: "logs/"
