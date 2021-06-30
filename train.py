@@ -3,7 +3,7 @@ from models import vae_models
 from config import config
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import TensorBoardLogger
-
+import os
 
 def make_model(config):
     model_type = config.model_type
@@ -29,5 +29,7 @@ if __name__ == "__main__":
         trainer.fit(model)
     else:
         trainer.fit(model)
+    if not os.isdir("./saved_models"):
+        os.mkdir("./saved_models")
     trainer.save_checkpoint(
         f"saved_models/{config.model_type}_alpha_{config.model_config.alpha}_dim_{config.model_config.hidden_size}.ckpt")
