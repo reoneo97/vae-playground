@@ -35,6 +35,7 @@ st.markdown(
     "- **dim**: Hidden Dimension of the model"
 )
 
+
 def load_model_files():
     files = os.listdir("saved_models/")
     clean_names = [utils.parse_model_file_name(name) for name in files]
@@ -101,6 +102,14 @@ if submit:
 st.write(
     """
     At low values of alpha, we can see the phenomenon known as the posterior
-    collapse
+    collapse. This is when the loss function does not weight reconstruction 
+    quality sufficiently and the reconstructed images look like digits but 
+    nothing like the input.
+
+    Essentially what happens is that the encoder encodes data points to a 
+    random gaussian distribution (to minimize KL Losss) but this does not give 
+    sufficient information to the decoder. In this case our decoder behaves 
+    very similarly to a Generative Adversarial Network (GAN) which generates 
+    images from random noise. 
     """
 )

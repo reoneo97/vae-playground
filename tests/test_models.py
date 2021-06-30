@@ -26,7 +26,7 @@ def test_VAE():
     batch_size = 5
     original_shape = (batch_size, 1, 28, 28)
     inp = torch.rand(*original_shape)
-    model = VAE(hidden_size, 1, 0.01)
+    model = VAE(hidden_size, 1, 0.01, batch_size)
     mu, log_var, output = model(inp)
 
     assert mu.shape == (batch_size, hidden_size)
@@ -41,7 +41,7 @@ def test_Conv_VAE():
     height = width = 28
     original_shape = (batch_size, channels, height, width)
     inp = torch.rand(*original_shape)
-    model = Conv_VAE(channels, height, width, 0.01, hidden_size, 1)
+    model = Conv_VAE(channels, height, width, 0.01, hidden_size, 1, batch_size)
 
     mu, log_var, output = model(inp)
 
@@ -57,7 +57,7 @@ def test_Conv_VAE_3():
     height = width = 28
     original_shape = (batch_size, channels, height, width)
     inp = torch.rand(*original_shape)
-    model = Conv_VAE(channels, height, width, 0.01, hidden_size, 1)
+    model = Conv_VAE(channels, height, width, 0.01, hidden_size, 1, batch_size)
 
     mu, log_var, output = model(inp)
 
@@ -69,16 +69,16 @@ def test_Conv_VAE_3():
 def test_interpolate():
     x1 = torch.rand(1, 28, 28)
     x2 = torch.rand(1, 28, 28)
-    model = VAE(28, 1, 0.01)
+    model = VAE(28, 1, 0.01, 1)
     model.eval()  # So that batch norm does not work
-    test = model.interpolate(x1, x2)
+    test, _, _ = model.interpolate(x1, x2)
     assert test.shape == (10, 1, 28, 28)
 
 
 def test_conv_interpolate():
     x1 = torch.rand(1, 28, 28)
     x2 = torch.rand(1, 28, 28)
-    model = Conv_VAE(1, 28, 28, 0.01, 28, 1)
+    model = Conv_VAE(1, 28, 28, 0.01, 28, 1, 1)
     model.eval()  # So that batch norm does not work
-    test = model.interpolate(x1, x2)
+    test, _, _ = model.interpolate(x1, x2)
     assert test.shape == (10, 1, 28, 28)
