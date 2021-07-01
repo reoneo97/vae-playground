@@ -50,7 +50,8 @@ class VAE(pl.LightningModule):
 
         super().__init__()
         self.hidden_size = hidden_size
-        self.save_path = f'{save_path}/{kwargs["model_type"]}_images/'
+        if save_images:
+            self.save_path = f'{save_path}/{kwargs["model_type"]}_images/'
         self.save_hyperparameters()
         self.save_images = save_images
         self.lr = lr
@@ -201,5 +202,5 @@ class VAE(pl.LightningModule):
             inter = (1.-wt)*z1 + wt*z2
             intermediate.append(self.decode(inter))
         intermediate.append(self.decode(z2))
-        out = torch.stack(intermediate, dim=0)
+        out = torch.stack(intermediate, dim=0).squeeze(1)
         return out, (mu1, lv1), (mu2, lv2)

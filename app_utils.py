@@ -34,7 +34,7 @@ def canvas_to_tensor(canvas):
     to a PyTorch Tensor of [1,1,28,28]
     """
     img = canvas.image_data
-    img = img[:, :, :-1]
+    img = img[:, :, :-1] # Ignore alpha channel
     img = img.mean(axis=2)
     img = img/255
     img = img*2 - 1.
@@ -59,7 +59,6 @@ def perform_interpolation(model, tens1, tens2):
     output, dist1, dist2 = model.interpolate(tens1, tens2)
     output = (output+1)/2
     # print(f'Image 1: Mean {dist1[0].mean()}, STD {torch.exp(dist1[1].mean())}')
-    output = output.squeeze(1)
     grid = make_grid(output, nrow=10)
     # grid = (grid+1)/2
     # print(grid.shape)

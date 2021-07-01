@@ -35,8 +35,10 @@ st.markdown(
     "- **dim**: Hidden Dimension of the model"
 )
 
+
 def load_model_files():
-    files = os.listdir("saved_models/")
+    files = os.listdir("./saved_models/")
+    files = [i for i in files if ".ckpt" in i]
     clean_names = [utils.parse_model_file_name(name) for name in files]
     return {k: v for k, v in zip(clean_names, files)}
 
@@ -49,6 +51,18 @@ with st.form("reconstruction"):
     model_name = st.selectbox("Choose Model:", files,
                               key="recon_model_select")
     recon_model_name = file_name_map[model_name]
+    recon_canvas = st_canvas(
+            # Fixed fill color with some opacity
+            fill_color="rgba(255, 165, 0, 0.3)",
+            stroke_width=8,
+            stroke_color="#FFFFFF",
+            background_color="#000000",
+            update_streamlit=True,
+            height=150,
+            width=150,
+            drawing_mode="freedraw",
+            key="recon_canvas",
+        )
     submit = st.form_submit_button("Perform Reconstruction")
     if submit:
         recon_model = utils.load_model(recon_model_name)
@@ -98,9 +112,18 @@ with st.form("interpolation"):
         )
 if submit:
     st.image(inter_output)
+
 st.write(
     """
     At low values of alpha, we can see the phenomenon known as the posterior
-    collapse
+    collapse. This is when the loss function does not weight reconstruction 
+    quality sufficiently and the reconstructed images look like digits but 
+    nothing like the input.
+
+    Essentially what happens is that the encoder encodes data points to a 
+    random gaussian distribution (to minimize KL Losss) but this does not give 
+    sufficient information to the decoder. In this case our decoder behaves 
+    very similarly to a Generative Adversarial Network (GAN) which generates 
+    images from random noise. 
     """
 )
