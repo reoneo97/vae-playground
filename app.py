@@ -5,7 +5,7 @@ import app_utils as utils
 from PIL import Image
 
 st.set_page_config("VAE Playground")
-st.title("VAE Playground")
+st.title("🎮 VAE Playground")
 title_img = Image.open("images/title_img.png")
 
 st.image(title_img)
@@ -14,17 +14,28 @@ st.markdown(
     "function and how the differences in architecture and "
     "hyperparameters will show up in the generated images. \n \n"
     "In this playground there will be two scenarios that you can use to "
-    "interact with the models, the first is a reconstruction one which is "
-    "used to look at the quality of image reconstruction. The second one is "
-    "interpolation where you can generate intermediary data points between "
-    "two images. From here this you can analyze the regularity of the latent "
-    "distribution."
+    "interact with the models:"
 )
+st.markdown(
+    """
+    1. **Image Reconstruction:** <br>
+    Observe quality of image reconstruction
+    2. **Image Interpolation:** <br>
+    Sample images equally spaced between 2 drawn images. Observe tradeoff
+    between image reconstruction and latents space regularity
+    """, unsafe_allow_html=True
+)
+
+#  the first is a reconstruction one which is "
+# "used to look at the quality of image reconstruction. The second one is "
+# "interpolation where you can generate intermediary data points between "
+# "two images. From here this you can analyze the regularity of the latent "
+# "distribution."
+
 st.markdown(
     "There are also two different architectures. The first one is the vanilla "
     "VAE and the other is the convolutional VAE which uses convolutional layers"
-    " for the encoder and decoder. Both are trained using the Evidence Lower "
-    "bound (ELBO) loss function. \n \n "
+    " for the encoder and decoder. "
     "To find out more check this accompanying"
     " [blogpost](https://towardsdatascience.com/beginner-guide-to-variational-autoencoders-vae-with-pytorch-lightning-13dbc559ba4b)"
 )
@@ -32,7 +43,7 @@ st.subheader("Hyperparameters:")
 st.markdown(
     "- **alpha**: Weight for reconstruction loss, higher values will lead to better"
     "image reconstruction but possibly poorer generation \n"
-    "- **dim**: Hidden Dimension of the model"
+    "- **dim**: Hidden Dimension of the model."
 )
 
 
@@ -47,7 +58,7 @@ def load_model_files():
 file_name_map = load_model_files()
 files = list(file_name_map.keys())
 
-st.header("Image Reconstruction", "recon")
+st.header("🖼️ Image Reconstruction", "recon")
 
 with st.form("reconstruction"):
     model_name = st.selectbox("Choose Model:", files,
@@ -76,7 +87,7 @@ if submit:
     st.image(out_img)
 
 
-st.header("Image Interpolation", "interpolate")
+st.header("🔍 Image Interpolation", "interpolate")
 with st.form("interpolation"):
     model_name = st.selectbox("Choose Model:", files)
     inter_model_name = file_name_map[model_name]
@@ -123,13 +134,14 @@ if submit:
 
 st.write(
     """
-    At low values of alpha, we can see the phenomenon known as the posterior
-    collapse. This is when the loss function does not weight reconstruction 
+    ## 💡 Interesting Note:
+    At low values of alpha, we can see the phenomenon known as the **posterior
+    collapse**. This is when the loss function does not weight reconstruction 
     quality sufficiently and the reconstructed images look like digits but 
     nothing like the input.
 
     Essentially what happens is that the encoder encodes data points to a 
-    random gaussian distribution (to minimize KL Losss) but this does not give 
+    random gaussian distribution (to minimize KL Loss) but this does not give 
     sufficient information to the decoder. In this case our decoder behaves 
     very similarly to a Generative Adversarial Network (GAN) which generates 
     images from random noise. 
