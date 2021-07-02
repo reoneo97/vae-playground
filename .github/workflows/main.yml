@@ -50,8 +50,7 @@ jobs:
       - name: Build, Push and Release a Docker container to Heroku.
         uses: jctaveras/heroku-deploy@v1.0.0
         with:
-          heroku_app_name: vae-playground
+          app_name: vae-playground
           email: $$ {{ secrets.HEROKU_EMAIL }}
           api_key: $$ {{ secrets.HEROKU_API_KEY }}
-          usedocker: true
-          docker_heroku_process_type: web
+          dockerfile_path: ''
