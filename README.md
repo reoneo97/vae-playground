@@ -6,7 +6,7 @@ Check them out here:
 [Part 1: Mathematical Foundations and Implementation](https://towardsdatascience.com/beginner-guide-to-variational-autoencoders-vae-with-pytorch-lightning-13dbc559ba4b) \
 [Part 2: Supercharge with PyTorch Lightning](https://towardsdatascience.com/beginner-guide-to-variational-autoencoders-vae-with-pytorch-lightning-part-2-6b79ad697c79) \
 [Part 3: Convolutional VAE, Inheritance and Unit Testing](https://towardsdatascience.com/beginner-guide-to-variational-autoencoders-vae-with-pytorch-lightning-part-3-9d686d0d85d9) \
-[Part 4: Deployment]()
+[Part 4: Deployment](https://towardsdatascience.com/building-a-vae-playground-with-streamlit-aa88a3394c04)
 
 ![](images/demo.gif)
 
