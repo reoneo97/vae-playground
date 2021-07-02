@@ -10,7 +10,7 @@ model_params:
   alpha: 512
   dataset: "mnist"
   save_images: true
-  save_path: "images/"
+  save_path: "log_images/"
   channels: 1
   height: 28
   width: 28

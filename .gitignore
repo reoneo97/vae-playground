@@ -4,6 +4,6 @@ data/
 __pycache__/
 .ipynb_checkpoints/
 lightning_logs/
-images/
+log_images/
 saved_models/
 logs/
