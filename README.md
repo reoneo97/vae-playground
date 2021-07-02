@@ -19,12 +19,14 @@ https://vae-playground.herokuapp.com/
 
 ## Model Training
 
+You can train the VAE models by using `train.py` and editing the `config.yaml` file. 
+
 
 
 
 ### Docker
 
-The Docker container contains model checkpoints that are too large to upload onto github. You can run this using:
+The Docker container contains model checkpoints that are too large to upload onto github. By downloading the docker image you 
 
 ```bash
 ```
