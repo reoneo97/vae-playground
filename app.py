@@ -70,7 +70,7 @@ with st.form("reconstruction"):
         recon_model = utils.load_model(recon_model_name)
         inp_tens = utils.canvas_to_tensor(recon_canvas)
         _, _, out = recon_model(inp_tens)
-        out = (out+1/2)
+        out = (out+1)/2
         out_img = utils.resize_img(utils.tensor_to_img(out), 150, 150)
 if submit:
     st.image(out_img)

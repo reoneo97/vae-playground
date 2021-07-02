@@ -29,7 +29,7 @@ if __name__ == "__main__":
         trainer.fit(model)
     else:
         trainer.fit(model)
-    if not os.isdir("./saved_models"):
+    if not os.path.isdir("./saved_models"):
         os.mkdir("./saved_models")
     trainer.save_checkpoint(
         f"saved_models/{config.model_type}_alpha_{config.model_config.alpha}_dim_{config.model_config.hidden_size}.ckpt")

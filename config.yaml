@@ -7,7 +7,7 @@ model_params:
   lr: 0.005
   batch_size: 144
   hidden_size: 128
-  alpha: 512
+  alpha: 1024
   dataset: "mnist"
   save_images: true
   save_path: "log_images/"
