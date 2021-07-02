@@ -29,8 +29,16 @@ Hyperparameters to change are:
 
 ## Running with Docker :whale:
 
+### Pull Image from Docker Hub
 ```bash
 docker pull reoneo/vae-playground
 docker run -p 8501:8501 -e PORT=8501 reoneo/vae-playground
 ```
+
+### Building Image from Dockerfile
+```bash
+docker build . -t <tag>
+docker run -p 8501:8501 -e PORT=8501 <tag>
+```
+
 This will host the app on `localhost:8501`
