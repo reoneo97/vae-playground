@@ -41,7 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Publish image to Docker Hub
-        uses: elgohr/Publish-Docker-Github-Action@master
+        uses: elgohr/Publish-Docker-Github-Action@v5
         with: 
           name: reoneo/vae-playground
           username: ${{ secrets.DOCKER_USERNAME }}
